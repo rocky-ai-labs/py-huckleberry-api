@@ -61,12 +61,13 @@ async def main() -> None:
 
         await api.start_nursing(child_uid, side="left")
         await api.switch_nursing_side(child_uid)
-        await api.complete_nursing(child_uid)
+        await api.complete_nursing(child_uid, notes="settled after feeding")
         await api.log_nursing(
             child_uid,
             start_time=datetime.now() - timedelta(hours=4),
             end_time=datetime.now() - timedelta(hours=3, minutes=30),
             side="right",
+            notes="good latch",
         )
 
         await api.log_bottle(
@@ -75,6 +76,7 @@ async def main() -> None:
             amount=120.0,
             bottle_type="Formula",
             units="ml",
+            notes="paced feeding",
         )
         await api.log_pump(
             child_uid,
@@ -158,9 +160,9 @@ async def main() -> None:
 - `await resume_nursing(child_uid, side)` - Resume paused session
 - `await switch_nursing_side(child_uid)` - Switch left/right
 - `await cancel_nursing(child_uid)` - Cancel without saving
-- `await complete_nursing(child_uid)` - Complete and save to history
-- `await log_nursing(child_uid, start_time=..., end_time=..., side="left")` - Log a completed breastfeeding interval with explicit timestamps
-- `await log_bottle(child_uid, start_time=..., amount=..., bottle_type=..., units=...)` - Log bottle feeding with an explicit event timestamp
+- `await complete_nursing(child_uid, notes=None)` - Complete and save to history with optional notes
+- `await log_nursing(child_uid, start_time=..., end_time=..., side="left", notes=None)` - Log a completed breastfeeding interval with explicit timestamps and optional notes
+- `await log_bottle(child_uid, start_time=..., amount=..., bottle_type=..., units=..., notes=None)` - Log bottle feeding with an explicit event timestamp and optional notes
   - `bottle_type`: "Breast Milk", "Formula", "Cow Milk", "Soy Milk", etc.
   - `amount`: Volume fed (e.g., 120.0)
   - `units`: "ml" or "oz"
@@ -202,8 +204,8 @@ Each returned record contains `reference` and `data`. Pass the unmodified
 
 - `await update_sleep_interval(child_uid, reference, start_time=..., end_time=...)`
 - `await delete_sleep_interval(child_uid, reference)`
-- `await update_nursing_interval(child_uid, reference, start_time=..., left_duration=..., right_duration=..., last_side=...)`
-- `await update_bottle_interval(child_uid, reference, start_time=..., amount=..., bottle_type=..., units=...)`
+- `await update_nursing_interval(child_uid, reference, start_time=..., left_duration=..., right_duration=..., last_side=..., notes=...)`
+- `await update_bottle_interval(child_uid, reference, start_time=..., amount=..., bottle_type=..., units=..., notes=...)`
 - `await delete_feed_interval(child_uid, reference)`
 - `await update_diaper_interval(child_uid, reference, start_time=..., mode=...)`
 - `await delete_diaper_interval(child_uid, reference)`

@@ -300,6 +300,7 @@ async def test_update_multi_bottle_preserves_container_and_repairs_cache(monkeyp
                         "amount": 90.0,
                         "units": "ml",
                         "offset": 240.0,
+                        "notes": "old note",
                     },
                     "other": {
                         "mode": "bottle",
@@ -330,6 +331,7 @@ async def test_update_multi_bottle_preserves_container_and_repairs_cache(monkeyp
         amount=120.0,
         bottle_type="Breast Milk",
         units="ml",
+        notes="finished calmly",
     )
 
     assert client.last_transaction is not None
@@ -340,6 +342,7 @@ async def test_update_multi_bottle_preserves_container_and_repairs_cache(monkeyp
     assert container_write is not None
     container_entries = cast(dict[str, dict[str, object]], container_write["data"])
     assert container_entries["target"]["amount"] == 120.0
+    assert container_entries["target"]["notes"] == "finished calmly"
     assert container_entries["other"]["amount"] == 60.0
 
     root_update = next(

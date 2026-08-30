@@ -970,8 +970,8 @@ class HuckleberryAPI:
 
         _LOGGER.info("Nursing cancelled")
 
-    async def complete_nursing(self, child_uid: str) -> None:
-        """Complete current nursing and save to history."""
+    async def complete_nursing(self, child_uid: str, *, notes: str | None = None) -> None:
+        """Complete current nursing and save it to history with optional notes."""
         _LOGGER.info("Completing nursing for child %s", child_uid)
 
         client = await self._get_firestore_client()
@@ -1037,6 +1037,7 @@ class HuckleberryAPI:
             rightDuration=right_duration,
             offset=await self._get_timezone_offset_minutes(),
             end_offset=await self._get_timezone_offset_minutes(),
+            notes=notes,
         )
 
         try:
@@ -1090,6 +1091,7 @@ class HuckleberryAPI:
         side: FeedSide = "left",
         left_duration: float | int | None = None,
         right_duration: float | int | None = None,
+        notes: str | None = None,
     ) -> None:
         """Log a completed nursing interval without using the live timer."""
         start_timestamp = start_time.timestamp()
@@ -1124,6 +1126,7 @@ class HuckleberryAPI:
             rightDuration=resolved_right_duration,
             offset=offset,
             end_offset=end_offset,
+            notes=notes,
         )
         last_nursing_data = FirebaseLastNursingData(
             mode="breast",
@@ -1170,6 +1173,7 @@ class HuckleberryAPI:
         amount: float,
         bottle_type: BottleType = "Formula",
         units: VolumeUnits = "ml",
+        notes: str | None = None,
     ) -> None:
         """Log bottle feeding as instant event.
 
@@ -1179,6 +1183,7 @@ class HuckleberryAPI:
             bottle_type: Type of bottle contents ("Breast Milk", "Formula", "Cow Milk", etc.)
             amount: Amount fed in specified units
             units: Volume units ("ml" or "oz")
+            notes: Optional notes attached to the feeding
         """
         _LOGGER.info("Logging bottle feeding for child %s: %s %s of %s", child_uid, amount, units, bottle_type)
 
@@ -1207,6 +1212,7 @@ class HuckleberryAPI:
             units=units,
             offset=offset,
             end_offset=offset,
+            notes=notes,
         )
 
         # Create interval document
@@ -2492,6 +2498,7 @@ class HuckleberryAPI:
         left_duration: float,
         right_duration: float,
         last_side: Literal["left", "right"],
+        notes: str | None,
     ) -> None:
         """Replace one nursing record if its revision still matches."""
         start = self._require_aware_datetime(start_time, "start_time")
@@ -2512,6 +2519,10 @@ class HuckleberryAPI:
                     "lastUpdated": now,
                 }
             )
+            if notes is None:
+                entry.pop("notes", None)
+            else:
+                entry["notes"] = notes
             FirebaseBreastFeedIntervalData.model_validate(entry)
             return entry
 
@@ -2532,6 +2543,7 @@ class HuckleberryAPI:
         amount: float,
         bottle_type: BottleType,
         units: VolumeUnits,
+        notes: str | None,
     ) -> None:
         """Replace one bottle record if its revision still matches."""
         start = self._require_aware_datetime(start_time, "start_time")
@@ -2551,6 +2563,10 @@ class HuckleberryAPI:
                     "lastUpdated": now,
                 }
             )
+            if notes is None:
+                entry.pop("notes", None)
+            else:
+                entry["notes"] = notes
             FirebaseBottleFeedIntervalData.model_validate(entry)
             return entry
 
